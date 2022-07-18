@@ -9,7 +9,7 @@ void LCD_1in8_test()
 	DEV_Module_Init();
   
   printf("LCD_1IN8_ Init and Clear...\r\n");
-//	LCD_1IN8_SetBackLight(1000);
+	LCD_1IN8_SetBackLight(1000);
 	LCD_1IN8_Init(SCAN_DIR_DFT);
 	LCD_1IN8_Clear(BLACK);
   
@@ -47,15 +47,15 @@ void LCD_1in8_test()
 
   Paint_DrawFloatNum  (1, 37 ,987.654321,5,  &Font12,    0x000f,   0xfff0);
   Paint_DrawString_EN(1, 50, "ABC", &Font20, 0xF000, 0x0FFF);
-  Paint_DrawString_CN(1,90, "Î¢Ñ©ï¿½ï¿½ï¿½ï¿½",  &Font24CN, WHITE, BLUE);
+	Paint_DrawString_CN(1,90, "Î¢Ñ©µç×Ó",  &Font24CN, WHITE, BLUE);
 	
-  Paint_DrawImage(gImage_1,80,35,60,60);
+	Paint_DrawImage(gImage_1,80,35,60,60);
 	
 	
 	DEV_Delay_ms(3000);
 	
 	printf("quit...\r\n");
-	DEV_Module_Exit();
+	//DEV_Module_Exit();
   
 }
 

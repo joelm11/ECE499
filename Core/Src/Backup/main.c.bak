@@ -115,6 +115,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  LCD_1in8_test();
   }
   /* USER CODE END 3 */
 }
