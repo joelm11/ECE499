@@ -136,7 +136,7 @@ parameter:
 void Paint_SetRotate(UWORD Rotate)
 {
     if(Rotate == ROTATE_0 || Rotate == ROTATE_90 || Rotate == ROTATE_180 || Rotate == ROTATE_270) {
-        Debug("Set image Rotate %d\r\n", Rotate);
+//        Debug("Set image Rotate %d\r\n", Rotate);
         Paint.Rotate = Rotate;
     } else {
         Debug("rotate = 0, 90, 180, 270\r\n");
@@ -743,7 +743,7 @@ void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWO
 		for(j = 0; j < H_Image; j++){
 			for(i = 0; i < W_Image; i++){
 				if(xStart+i < Paint.WidthMemory  &&  yStart+j < Paint.HeightMemory)//Exceeded part does not display
-					Paint_SetPixel(xStart + i, yStart + j, (*(image + j*W_Image*2 + i*2+1))<<8 | (*(image + j*W_Image*2 + i*2)));
+					Paint_SetPixel(xStart + i, yStart + j, (*(image + i*W_Image*2 + j*2+1))<<8 | (*(image + i*W_Image*2 + j*2)));
 				//Using arrays is a property of sequential storage, accessing the original array by algorithm
 				//j*W_Image*2 			   Y offset
 				//i*2              	   X offset

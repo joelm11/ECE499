@@ -50,7 +50,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile int LCD_STATE = 0;
+volatile int STATE = 0;
 volatile int USER_TEMP = 25;
 /* USER CODE END PV */
 
@@ -60,6 +60,7 @@ void SystemClock_Config(void);
 void lcd_testing()
 {
 
+	// Begin LCD Init
 	DEV_Module_Init();
 	LCD_1IN8_Init(SCAN_DIR_DFT);
 	LCD_1IN8_Clear(BLACK);
@@ -67,6 +68,7 @@ void lcd_testing()
 	Paint_SetClearFuntion(LCD_1IN8_Clear);
 	Paint_SetDisplayFuntion(LCD_1IN8_DrawPaint);
 	Paint_Clear(WHITE);
+	// End LCD Init
 
 	// Initialization routine:
 	Paint_DrawString_EN(1, 48, "Initializing", &Font12, 0xFFFF, 0x0000);
@@ -134,6 +136,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 //  LCD_1in8_test();
   lcd_testing();
+  HAL_TIM_Base_Start_IT(&htim5);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -144,37 +147,38 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  // Timer initially used for backlight can be reconfigured to run these routines
+	  // on a more predictable basis
 	  // Read ambient and hotplate temperature
 	  // fx();
 
 	  // Control loop calculations
 	  // cx();
 
-	  // Adjust PWM values for fan and hotplate
+	  // Adjust PWM values for fan and hotplate (this probably goes within control loop calculations)
 	  // gx();
 
 
 	  // Switch for LCD display modes which will be toggled through via
 	  // the switch on the rotary encoder
-	  switch(LCD_STATE){
+	  switch(STATE){
 
-	  // Initialization screen
-	  case 0:
-		  printf("State 0\n");
-		  break;
-	  // Heating
-	  case 1:
-		  printf("State 1\n");
-		  break;
-	  // Temperature reached (buzzer as well)
-	  case 2:
-		  printf("State 2\n");
-		  break;
+		  // Initialization / Idle / Stopped screen
+		  case 0:
+			  printf("State 0\n");
+			  break;
+		  // Start heating routines
+		  case 1:
+			  printf("State 1\n");
+			  break;
+		  // Temperature reached (buzzer as well), continue heating routines
+		  case 2:
+			  printf("State 2\n");
+			  break;
 
-	  default:
-		  break;
+		  default:
+			  break;
 	  }
-
   }
   /* USER CODE END 3 */
 }

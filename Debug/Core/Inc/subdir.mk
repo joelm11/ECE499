@@ -5,24 +5,36 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Inc/Control.c \
 ../Core/Inc/DEV_Config.c \
 ../Core/Inc/GUI_Paint.c \
 ../Core/Inc/LCD_1in8.c \
 ../Core/Inc/LCD_1inch8_test.c \
+../Core/Inc/LCD_Routines.c \
+../Core/Inc/PWM_Config.c \
+../Core/Inc/SensorInterfacing.c \
 ../Core/Inc/image.c 
 
 OBJS += \
+./Core/Inc/Control.o \
 ./Core/Inc/DEV_Config.o \
 ./Core/Inc/GUI_Paint.o \
 ./Core/Inc/LCD_1in8.o \
 ./Core/Inc/LCD_1inch8_test.o \
+./Core/Inc/LCD_Routines.o \
+./Core/Inc/PWM_Config.o \
+./Core/Inc/SensorInterfacing.o \
 ./Core/Inc/image.o 
 
 C_DEPS += \
+./Core/Inc/Control.d \
 ./Core/Inc/DEV_Config.d \
 ./Core/Inc/GUI_Paint.d \
 ./Core/Inc/LCD_1in8.d \
 ./Core/Inc/LCD_1inch8_test.d \
+./Core/Inc/LCD_Routines.d \
+./Core/Inc/PWM_Config.d \
+./Core/Inc/SensorInterfacing.d \
 ./Core/Inc/image.d 
 
 
@@ -33,7 +45,7 @@ Core/Inc/%.o Core/Inc/%.su: ../Core/Inc/%.c Core/Inc/subdir.mk
 clean: clean-Core-2f-Inc
 
 clean-Core-2f-Inc:
-	-$(RM) ./Core/Inc/DEV_Config.d ./Core/Inc/DEV_Config.o ./Core/Inc/DEV_Config.su ./Core/Inc/GUI_Paint.d ./Core/Inc/GUI_Paint.o ./Core/Inc/GUI_Paint.su ./Core/Inc/LCD_1in8.d ./Core/Inc/LCD_1in8.o ./Core/Inc/LCD_1in8.su ./Core/Inc/LCD_1inch8_test.d ./Core/Inc/LCD_1inch8_test.o ./Core/Inc/LCD_1inch8_test.su ./Core/Inc/image.d ./Core/Inc/image.o ./Core/Inc/image.su
+	-$(RM) ./Core/Inc/Control.d ./Core/Inc/Control.o ./Core/Inc/Control.su ./Core/Inc/DEV_Config.d ./Core/Inc/DEV_Config.o ./Core/Inc/DEV_Config.su ./Core/Inc/GUI_Paint.d ./Core/Inc/GUI_Paint.o ./Core/Inc/GUI_Paint.su ./Core/Inc/LCD_1in8.d ./Core/Inc/LCD_1in8.o ./Core/Inc/LCD_1in8.su ./Core/Inc/LCD_1inch8_test.d ./Core/Inc/LCD_1inch8_test.o ./Core/Inc/LCD_1inch8_test.su ./Core/Inc/LCD_Routines.d ./Core/Inc/LCD_Routines.o ./Core/Inc/LCD_Routines.su ./Core/Inc/PWM_Config.d ./Core/Inc/PWM_Config.o ./Core/Inc/PWM_Config.su ./Core/Inc/SensorInterfacing.d ./Core/Inc/SensorInterfacing.o ./Core/Inc/SensorInterfacing.su ./Core/Inc/image.d ./Core/Inc/image.o ./Core/Inc/image.su
 
 .PHONY: clean-Core-2f-Inc
 
