@@ -1,0 +1,2 @@
+../Core/Inc/Control.c:3:6:Controller_Init	16	static
+../Core/Inc/Control.c:14:7:Controller_Update	32	static

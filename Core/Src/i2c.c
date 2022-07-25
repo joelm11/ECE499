@@ -21,7 +21,7 @@
 #include "i2c.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "SensorInterfacing.h"
 /* USER CODE END 0 */
 
 I2C_HandleTypeDef hi2c1;
@@ -112,5 +112,44 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+// Routine for reading TM75
+float read_ambient_temp()
+{
+
+	uint8_t ambient_sens_addr = 0x48 << 1;	// Note address needs to be shifted by 1 bit in this protocol
+	uint8_t tempr_reg = 0x00, conf_reg = 0x01;
+	uint8_t tempr_data_buff[2];
+	int final_tempr = 0;
+
+	// Routine as described for dataread from MLX90614 DS
+	HAL_I2C_Master_Transmit(&hi2c1, ambient_sens_addr, &tempr_reg, 1, 500);
+	HAL_I2C_Master_Receive(&hi2c1, ambient_sens_addr, tempr_data_buff, 2, 500);
+	final_tempr = (tempr_data_buff[0] << 4) | (tempr_data_buff[1]);
+
+	// Configuration register defaults to highest res with scale factor of .0625
+	return final_tempr * .0625;
+}
+
+// Routine for reading IR Temp Sensor
+float read_plate_temp()
+{
+
+	uint8_t ir_sens_addr = 0x5A << 1;	// Note address needs to be shifted by 1 bit in this protocol
+	uint8_t t_amb_addr = 0x06, t_obj_addr = 0x07;
+	uint8_t tempr_data_buff[3];
+	int final_tempr = 0;
+
+	// Routine as described for dataread from MLX90614 DS
+	// TODO: May need to program temperature range and emissivity constant within EEPROM
+	HAL_I2C_Mem_Read(&hi2c1, ir_sens_addr, t_obj_addr, 1, tempr_data_buff, 3, 100);	// Note use this function it is better somehow
+
+	// Final temperature = Tobj * .02 - 273.15
+	final_tempr = (tempr_data_buff[1] << 8 | tempr_data_buff[0]) * .02;	// Result in Kelvin
+	final_tempr -= 273.15;
+
+	return final_tempr;
+}
+
 
 /* USER CODE END 1 */

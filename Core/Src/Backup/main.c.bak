@@ -31,6 +31,8 @@
 #include "LCD_Test.h"
 #include "LCD_1in8.h"
 #include "DEV_Config.h"
+#include "SensorInterfacing.h"
+#include "PWM_Config.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +42,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+volatile int STATE = 0;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,8 +53,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile int LCD_STATE = 0;
-volatile int USER_TEMP = 25;
+//volatile extern int STATE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,6 +62,7 @@ void SystemClock_Config(void);
 void lcd_testing()
 {
 
+	// Begin LCD Init
 	DEV_Module_Init();
 	LCD_1IN8_Init(SCAN_DIR_DFT);
 	LCD_1IN8_Clear(BLACK);
@@ -67,6 +70,7 @@ void lcd_testing()
 	Paint_SetClearFuntion(LCD_1IN8_Clear);
 	Paint_SetDisplayFuntion(LCD_1IN8_DrawPaint);
 	Paint_Clear(WHITE);
+	// End LCD Init
 
 	// Initialization routine:
 	Paint_DrawString_EN(1, 48, "Initializing", &Font12, 0xFFFF, 0x0000);
@@ -89,6 +93,7 @@ void lcd_testing()
 //	Paint_DrawImage(gImage_1,80,35,60,60);
 
 };
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -133,8 +138,18 @@ int main(void)
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
 //  LCD_1in8_test();
-  lcd_testing();
-  HAL_TIM_Base_Start_IT(&htim5);
+//  lcd_testing();
+//  HAL_TIM_Base_Start_IT(&htim5);
+
+  // Testing adjusting PWM rates
+
+  // NOTE: TIM5 being weird for some reason
+//  float Duty_Cycle = 0.5;
+  HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
+//  PWM_Update(&htim9, TIM_CHANNEL_1, Duty_Cycle);
+//  PWM_Update(&htim11, TIM_CHANNEL_1, Duty_Cycle);
+//  PWM_Update(&htim5, TIM_CHANNEL_1, Duty_Cycle);
+//  PWM_Update(&htim1, TIM_CHANNEL_1, Duty_Cycle);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -145,39 +160,37 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  // Timer initially used for backlight can be reconfigured to run these routines
-	  // on a more predictable basis
-	  // Read ambient and hotplate temperature
-	  // fx();
-
-	  // Control loop calculations
-	  // cx();
-
-	  // Adjust PWM values for fan and hotplate
-	  // gx();
-
-
 	  // Switch for LCD display modes which will be toggled through via
 	  // the switch on the rotary encoder
-	  switch(LCD_STATE){
+//	  STATE %= 3;
+//	  switch(STATE){
+//
+//		  // Initialization / Idle / Stopped screen
+//		  case 0:
+//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_SET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
+//			  break;
+//		  // Start heating routines
+//		  case 1:
+//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_SET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
+//			  break;
+//		  // Temperature reached (buzzer as well), continue heating routines
+//		  case 2:
+//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_SET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
+//			  break;
+//
+//		  default:
+//			  break;
+//	  }
 
-	  // Initialization / Idle / Stopped screen
-	  case 0:
-		  printf("State 0\n");
-		  break;
-	  // Start heating routines
-	  case 1:
-		  printf("State 1\n");
-		  break;
-	  // Temperature reached (buzzer as well), continue heating routines
-	  case 2:
-		  printf("State 2\n");
-		  break;
 
-	  default:
-		  break;
-	  }
 
+//	  HAL_Delay(20);
   }
   /* USER CODE END 3 */
 }

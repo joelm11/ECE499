@@ -201,12 +201,51 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+	// Interrupt masking for encoder
+
+	// Check pushbutton
+	if(!HAL_GPIO_ReadPin(GPIOB, ROT_SW_Pin)) {
+
+		STATE++;
+
+	} else {
+
+		// If CW, A goes LO first while B is HI
+		if(!HAL_GPIO_ReadPin(GPIOB, DEB_A_Pin) && HAL_GPIO_ReadPin(GPIOB, DEB_B_Pin)) {
+
+			STATE++;
+			return;
+
+		} else { 	// Otherwise it is a CCW rotation
+
+			STATE++;
+			return;
+		}
+
+	}
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(DEB_A_Pin);
+  HAL_GPIO_EXTI_IRQHandler(ROT_SW_Pin);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+
+
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
   * @brief This function handles TIM5 global interrupt.
   */
 void TIM5_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM5_IRQn 0 */
-	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_8);
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_9);
   /* USER CODE END TIM5_IRQn 0 */
   HAL_TIM_IRQHandler(&htim5);
   /* USER CODE BEGIN TIM5_IRQn 1 */

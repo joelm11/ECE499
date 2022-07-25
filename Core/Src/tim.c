@@ -94,7 +94,7 @@ void MX_TIM5_Init(void)
 {
 
   /* USER CODE BEGIN TIM5_Init 0 */
-
+	// This is configured for a period of .45 seconds rn
   /* USER CODE END TIM5_Init 0 */
 
   TIM_MasterConfigTypeDef sMasterConfig = {0};
@@ -244,7 +244,7 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* tim_pwmHandle)
     __HAL_RCC_TIM5_CLK_ENABLE();
 
     /* TIM5 interrupt Init */
-    HAL_NVIC_SetPriority(TIM5_IRQn, 15, 0);
+    HAL_NVIC_SetPriority(TIM5_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(TIM5_IRQn);
   /* USER CODE BEGIN TIM5_MspInit 1 */
 

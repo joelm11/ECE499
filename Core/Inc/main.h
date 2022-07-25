@@ -36,7 +36,8 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+volatile extern int USER_TEMP;
+extern volatile int STATE;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -85,8 +86,10 @@ void Error_Handler(void);
 #define DEB_B_GPIO_Port GPIOB
 #define DEB_A_Pin GPIO_PIN_14
 #define DEB_A_GPIO_Port GPIOB
+#define DEB_A_EXTI_IRQn EXTI15_10_IRQn
 #define ROT_SW_Pin GPIO_PIN_15
 #define ROT_SW_GPIO_Port GPIOB
+#define ROT_SW_EXTI_IRQn EXTI15_10_IRQn
 #define LED_R_Pin GPIO_PIN_7
 #define LED_R_GPIO_Port GPIOC
 #define LED_G_Pin GPIO_PIN_8

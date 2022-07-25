@@ -31,6 +31,9 @@
 #include "LCD_Test.h"
 #include "LCD_1in8.h"
 #include "DEV_Config.h"
+#include "SensorInterfacing.h"
+#include "PWM_Config.h"
+#include "Control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +43,15 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+volatile int STATE = 0;
+#define PID_KP  1.0f
+#define PID_KI  0.25f
+#define PID_LIM_MIN 0.0f
+#define PID_LIM_MAX  1.0f
+#define PID_LIM_MIN_INT -5.0f
+#define PID_LIM_MAX_INT  5.0f
+#define PERIOD 0.45f
+#define SIM_TIME 9.0f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,13 +62,21 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-volatile int STATE = 0;
-volatile int USER_TEMP = 25;
+//volatile extern int STATE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+float TestSystem_Update(float inp) {
+
+    static float output = 0.0f;
+    static const float alpha = 0.02f;
+
+    output = (PERIOD * inp + output) / (1.0f + alpha * PERIOD);
+
+    return output;
+};
 void lcd_testing()
 {
 
@@ -71,26 +91,11 @@ void lcd_testing()
 	// End LCD Init
 
 	// Initialization routine:
-	Paint_DrawString_EN(1, 48, "Initializing", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_DrawString_EN(1, 48, "Initializing .", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_DrawString_EN(1, 48, "Initializing . .", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_DrawString_EN(1, 48, "Initializing . . .", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_Clear(WHITE);
-	Paint_DrawString_EN(1, 48, "Current Temperature:", &Font12, 0xFFFF, 0x0000);
-	Paint_DrawFloatNum(1 , 60, 69.69696, 5, &Font12, 0x0000, 0xFFFF);
-	HAL_Delay(1000);
-	Paint_Clear(WHITE);
-	Paint_DrawFloatNum(1 , 60, 70.0000, 5, &Font12, 0x0000, 0xFFFF);
-	HAL_Delay(2000);
-//	// gImage_70X70
-//	Paint_DrawImage(gImage_70X70, 1, 60, 70, 70);
+	Paint_DrawImage(gImage_70X70, 1, 30, 100, 100);
 //	Paint_DrawImage(gImage_1,80,35,60,60);
 
 };
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -134,9 +139,31 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM11_Init();
   /* USER CODE BEGIN 2 */
-//  LCD_1in8_test();
+
+  // Testing LCD
   lcd_testing();
-  HAL_TIM_Base_Start_IT(&htim5);
+
+//  // Testing PI Control
+//  HAL_TIM_Base_Start_IT(&htim5);
+//  PIController sys;
+//  sys.Kp = PID_KP;
+//  sys.Ki = PID_KI;
+//  sys.lim_min_int = PID_LIM_MIN_INT;
+//  sys.lim_max_int = PID_LIM_MIN_INT;
+//  sys.lim_min = PID_LIM_MIN;
+//  sys.lim_max = PID_LIM_MAX;
+//  sys.T = PERIOD;
+//
+//  Controller_Init(&sys);
+//  float setpoint = 0.5f;
+//  for (float t = 0.0f; t <= SIM_TIME; t += PERIOD) {
+//
+//	  float measurement = TestSystem_Update(sys.out);
+//	  Controller_Update(&sys, setpoint, measurement);
+//	  HAL_Delay(1);
+//  }
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -147,38 +174,37 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  // Timer initially used for backlight can be reconfigured to run these routines
-	  // on a more predictable basis
-	  // Read ambient and hotplate temperature
-	  // fx();
-
-	  // Control loop calculations
-	  // cx();
-
-	  // Adjust PWM values for fan and hotplate (this probably goes within control loop calculations)
-	  // gx();
-
-
 	  // Switch for LCD display modes which will be toggled through via
 	  // the switch on the rotary encoder
-	  switch(STATE){
+//	  STATE %= 3;
+//	  switch(STATE){
+//
+//		  // Initialization / Idle / Stopped screen
+//		  case 0:
+//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_SET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
+//			  break;
+//		  // Start heating routines
+//		  case 1:
+//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_SET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
+//			  break;
+//		  // Temperature reached (buzzer as well), continue heating routines
+//		  case 2:
+//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_SET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
+//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
+//			  break;
+//
+//		  default:
+//			  break;
+//	  }
 
-		  // Initialization / Idle / Stopped screen
-		  case 0:
-			  printf("State 0\n");
-			  break;
-		  // Start heating routines
-		  case 1:
-			  printf("State 1\n");
-			  break;
-		  // Temperature reached (buzzer as well), continue heating routines
-		  case 2:
-			  printf("State 2\n");
-			  break;
 
-		  default:
-			  break;
-	  }
+
+//	  HAL_Delay(20);
   }
   /* USER CODE END 3 */
 }
