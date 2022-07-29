@@ -31,13 +31,21 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stm32f4xx_it.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-volatile extern int USER_TEMP;
+extern volatile int USER_TEMP;
 extern volatile int STATE;
+extern volatile float measured_amb_temp;
+extern volatile float measured_hotplate_temp;
+extern volatile float user_preheat_temp;
+extern volatile float user_preheat_time;
+extern volatile float user_temp;
+extern volatile float user_reflow_time;
+extern volatile int set_user_temp_flag;
+// NOTE alot of these can be made static volatile and kept within their own file
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
@@ -54,16 +62,12 @@ extern volatile int STATE;
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void update_temps();
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define EN_12V_Pin GPIO_PIN_13
 #define EN_12V_GPIO_Port GPIOC
-#define LCD_PWM_Pin GPIO_PIN_1
-#define LCD_PWM_GPIO_Port GPIOC
-#define BUCK_PWM_Pin GPIO_PIN_0
-#define BUCK_PWM_GPIO_Port GPIOA
 #define FAN_PWM_Pin GPIO_PIN_2
 #define FAN_PWM_GPIO_Port GPIOA
 #define LCD_CS_Pin GPIO_PIN_3
@@ -107,7 +111,10 @@ void Error_Handler(void);
 #define BUZZ_PWM_Pin GPIO_PIN_12
 #define BUZZ_PWM_GPIO_Port GPIOC
 /* USER CODE BEGIN Private defines */
-
+#define hotplate_pwm &htim1
+#define control_timer &htim5
+#define fan_pwm &htim9
+#define buzz_pwm &htim11
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

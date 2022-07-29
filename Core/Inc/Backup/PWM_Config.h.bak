@@ -11,8 +11,3 @@
  */
 void PWM_Update(TIM_HandleTypeDef *Timer, uint32_t Timer_Channel, float Duty_Cycle);
 
-// Timer counts to .Period to turn on and .Pulse to turn off
-// !! .Period needs to be larger than .Pulse !!
-// Base timer clock is 16 MHz, period for PWM is TRise1 - TRise2
-// NOTE: Frequency is probably something we hardcode manually
-void PWM_Updatef(TIM_HandleTypeDef *Timer, uint32_t Timer_Channel, uint32_t Frequency);

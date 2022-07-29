@@ -218,7 +218,8 @@ void Paint_DrawFloatNum(UWORD Xpoint, UWORD Ypoint, double Nummber,  UBYTE Decim
 void Paint_DrawTime(UWORD Xstart, UWORD Ystart, PAINT_TIME *pTime, sFONT* Font, UWORD Color_Background, UWORD Color_Foreground);
 
 //pic
-void Paint_DrawImage(const unsigned char *image,UWORD Startx, UWORD Starty,UWORD Endx, UWORD Endy); 
+//void Paint_DrawImage(const unsigned char *image,UWORD Startx, UWORD Starty,UWORD Endx, UWORD Endy);
+void Paint_DrawImage(const uint16_t *image,UWORD Startx, UWORD Starty,UWORD Endx, UWORD Endy);
 
 
 #endif

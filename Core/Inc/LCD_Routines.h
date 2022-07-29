@@ -39,7 +39,7 @@ uint8_t LCD_Format(char *string_ptr, float number);
  * @param cur_plt_tmp pointer to float of measured plate temperature
  * @param cur_amb_tmp pointer to float of measured ambient temperature
  */
-void LCD_updt_temps(float *cur_plt_tmp, float *cur_amb_tmp);
+void LCD_updt_temps(volatile float *cur_plt_tmp, volatile float *cur_amb_tmp);
 
 /* @brief Updates the measured temperatures in LCD_DATA struct
  * @param flags, pointer to 8bits of flags indicating desired changes
@@ -50,7 +50,9 @@ void LCD_set_flags(uint16_t *flags);
  * @param set_plt_tmp pointer to float of set plate temperature
  * @param set_soak_tim pointer to float of set ambient temperature
  */
-void LCD_usr_inputs(float *set_plt_tmp, float *set_soak_tim);
+//void LCD_usr_inputs(volatile float* set_preheat_tmp, volatile float* set_preheat_tim);
+void LCD_usr_inputs(volatile float* set_preheat_tmp, volatile float* set_preheat_tim,
+					volatile float* set_reflow_tmp, volatile float* set_reflow_tim);
 
 /* @brief clears the graph area for the live temperature plot
  */
@@ -63,11 +65,14 @@ void Custom_LCD_test(void);
 /* @brief data structure to interface with the LCD
  */
 typedef struct {
-    volatile uint16_t flags;				// - IMU STAT - TMP75 STAT - IR STAT - x -    - x - LEFT - RIGHT - BUTTON -
-    volatile float SET_PLT_TMP;			//Hot plate set temperature
+	volatile uint16_t flags;			// - IMU STAT - TMP75 STAT - IR STAT - x -    - x - LEFT - RIGHT - BUTTON -
+    volatile float SET_REFL_TMP;		//Hot plate set reflow temperature
+    volatile float SET_PRE_TMP;			//Hot plate set preheat temp
+    volatile float PREHEAT_TIME;		//Hot plate set preheat time
+    volatile float REFLOW_TIME;			//Hot plate set reflow time
     volatile float CUR_PLT_TMP;			//Hot plate measured temperature
     volatile float CUR_AMB_TMP;			//Current ambient temperature
-    volatile uint8_t SOAK_TIME;			//Hot plate soak time set
+//    volatile uint8_t SOAK_TIME;			//Hot plate soak time set
     volatile uint8_t STATE;				//Current Hot plate soak time
 } LCD_DATA;
 extern volatile LCD_DATA LCD_data;

@@ -139,7 +139,7 @@ void Paint_SetRotate(UWORD Rotate)
 //        Debug("Set image Rotate %d\r\n", Rotate);
         Paint.Rotate = Rotate;
     } else {
-        Debug("rotate = 0, 90, 180, 270\r\n");
+//        Debug("rotate = 0, 90, 180, 270\r\n");
       //  exit(0);
     }
 }
@@ -153,7 +153,7 @@ void Paint_SetMirroring(UBYTE mirror)
 {
     if(mirror == MIRROR_NONE || mirror == MIRROR_HORIZONTAL || 
         mirror == MIRROR_VERTICAL || mirror == MIRROR_ORIGIN) {
-        Debug("mirror image x:%s, y:%s\r\n",(mirror & 0x01)? "mirror":"none", ((mirror >> 1) & 0x01)? "mirror":"none");
+//        Debug("mirror image x:%s, y:%s\r\n",(mirror & 0x01)? "mirror":"none", ((mirror >> 1) & 0x01)? "mirror":"none");
         Paint.Mirror = mirror;
     } else {
         Debug("mirror should be MIRROR_NONE, MIRROR_HORIZONTAL, \
@@ -737,17 +737,28 @@ parameter:
     xEnd             ：Image width
     yEnd             : Image height
 ******************************************************************************/
-void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image) 
+//void Paint_DrawImage(const unsigned char *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image)
+//{
+//    int i,j;
+//		for(j = 0; j < H_Image; j++){
+//			for(i = 0; i < W_Image; i++){
+//				if(xStart+i < Paint.WidthMemory  &&  yStart+j < Paint.HeightMemory)//Exceeded part does not display
+//					Paint_SetPixel(xStart + i, yStart + j, (*(image + i*W_Image*2 + j*2+1))<<8 | (*(image + i*W_Image*2 + j*2)));
+//				//Using arrays is a property of sequential storage, accessing the original array by algorithm
+//				//j*W_Image*2 			   Y offset
+//				//i*2              	   X offset
+//			}
+//		}
+//
+//}
+
+
+void Paint_DrawImage(const uint16_t *image, UWORD xStart, UWORD yStart, UWORD W_Image, UWORD H_Image)
 {
-    int i,j; 
-		for(j = 0; j < H_Image; j++){
-			for(i = 0; i < W_Image; i++){
-				if(xStart+i < Paint.WidthMemory  &&  yStart+j < Paint.HeightMemory)//Exceeded part does not display
-					Paint_SetPixel(xStart + i, yStart + j, (*(image + i*W_Image*2 + j*2+1))<<8 | (*(image + i*W_Image*2 + j*2)));
-				//Using arrays is a property of sequential storage, accessing the original array by algorithm
-				//j*W_Image*2 			   Y offset
-				//i*2              	   X offset
-			}
+    int i,j;
+    	for(i = 0; i < H_Image; i++) {
+    		for(j = 0; j < W_Image; j++) {
+    			Paint_SetPixel(xStart + i, yStart + j, *(image + (i * W_Image + 1) + j));
+    		}
 		}
-      
 }

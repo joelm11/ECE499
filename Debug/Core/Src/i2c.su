@@ -3,3 +3,4 @@
 ../Core/Src/i2c.c:89:6:HAL_I2C_MspDeInit	16	static
 ../Core/Src/i2c.c:117:7:read_ambient_temp	32	static
 ../Core/Src/i2c.c:135:7:read_plate_temp	40	static
+../Core/Src/i2c.c:155:6:read_orientation	4	static

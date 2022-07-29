@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
-#include "lptim.h"
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
@@ -34,6 +33,7 @@
 #include "SensorInterfacing.h"
 #include "PWM_Config.h"
 #include "Control.h"
+#include "LCD_Routines.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,15 +43,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-volatile int STATE = 0;
-#define PID_KP  1.0f
-#define PID_KI  0.25f
-#define PID_LIM_MIN 0.0f
-#define PID_LIM_MAX  1.0f
-#define PID_LIM_MIN_INT -5.0f
-#define PID_LIM_MAX_INT  5.0f
-#define PERIOD 0.45f
-#define SIM_TIME 9.0f
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -62,37 +54,82 @@ volatile int STATE = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//volatile extern int STATE;
+volatile float measured_amb_temp = 0.0f;
+volatile float measured_hotplate_temp = 0.0f;
+volatile int STATE = 0;
+volatile float user_temp = 30.0f;
+volatile float user_preheat_temp = 30.0f;
+volatile float user_preheat_time = 5.0f;
+volatile float user_reflow_time = 5.0f;
+volatile int set_user_temp_flag = 0;
+PIController fan = 	{ .Kp = FAN_KP, .Ki = FAN_KI, .lim_min_int = FAN_LIM_MIN_INT,
+				  .lim_max_int = FAN_LIM_MAX_INT, .lim_min = FAN_LIM_MAX,
+				  .lim_max = FAN_LIM_MAX, .T = PERIOD
+					};
+PIController hotplate = { .Kp = FAN_KP, .Ki = FAN_KI, .lim_min_int = FAN_LIM_MIN_INT,
+						  .lim_max_int = FAN_LIM_MAX_INT, .lim_min = FAN_LIM_MAX,
+						  .lim_max = FAN_LIM_MAX, .T = PERIOD
+						};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-float TestSystem_Update(float inp) {
 
-    static float output = 0.0f;
-    static const float alpha = 0.02f;
-
-    output = (PERIOD * inp + output) / (1.0f + alpha * PERIOD);
-
-    return output;
-};
-void lcd_testing()
+/* Initialize peripherals, fan, and hotplate, control systems in off state, LCD display IDLE */
+void System_Initialization()
 {
 
-	// Begin LCD Init
-	DEV_Module_Init();
-	LCD_1IN8_Init(SCAN_DIR_DFT);
-	LCD_1IN8_Clear(BLACK);
-	Paint_NewImage(LCD_1IN8_WIDTH,LCD_1IN8_HEIGHT, 0, WHITE);
-	Paint_SetClearFuntion(LCD_1IN8_Clear);
-	Paint_SetDisplayFuntion(LCD_1IN8_DrawPaint);
-	Paint_Clear(WHITE);
-	// End LCD Init
+	/* Disable all peripherals */
+	HAL_GPIO_WritePin(SENS_DIS_GPIO_Port, SENS_DIS_Pin, GPIO_PIN_SET);	// Disable sensors
+	HAL_GPIO_WritePin(EN_12V_GPIO_Port, EN_12V_Pin, GPIO_PIN_SET);		// Disable hotplate voltage
+	PWM_Update(fan_pwm, TIM_CHANNEL_1, 1);								// Disable fan (100% DC)
+	PWM_Update(hotplate_pwm, TIM_CHANNEL_1, 1);							// Disable hotplate (100% DC)
 
-	// Initialization routine:
-	Paint_DrawImage(gImage_70X70, 1, 30, 100, 100);
-//	Paint_DrawImage(gImage_1,80,35,60,60);
+	/* Initialize control structures */
+	Controller_Init(&fan);
+	Controller_Init(&hotplate);
+
+	/* Initialize LCD */
+	LCD_init();
+	LCD_Refresh(STATE);
+
+};
+
+/* Find oscillation for ZN calculation of controller gains */
+void ZN_Tuning()
+{
+
+	  // Enable sensors
+	  HAL_GPIO_WritePin(SENS_DIS_GPIO_Port, SENS_DIS_Pin, GPIO_PIN_RESET);
+
+	  // Start hotplate at 50% Duty Cycle
+	HAL_TIM_PWM_Start(hotplate_pwm, TIM_CHANNEL_1);
+	PWM_Update(hotplate_pwm, TIM_CHANNEL_1, .5);
+
+	// Set integral gain to 0
+	hotplate.Ki = 0;
+
+	while (1) {
+
+		// Use the user temp to configure KP gain
+		hotplate.Kp = user_temp;
+
+		// Observe temperature response
+		update_temps();
+		LCD_updt_temps(&measured_hotplate_temp, &measured_amb_temp);
+		LCD_Refresh(2);
+		HAL_Delay(100);
+	}
+
+	/* Note on final gain calculations: */
+	/* Gain at which system critically stable: Ku
+	 * Period of oscillation at critical stability: Pu
+	 * Kp = Ku / 2.2
+	 * Ki = Kp * T / ( Pu / 1.2 )
+	 *
+	 * */
+
 
 };
 
@@ -101,6 +138,12 @@ void lcd_testing()
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+/* Update current system temperatures */
+void update_temps()
+{
+	  measured_amb_temp = read_ambient_temp();
+	  measured_hotplate_temp = read_plate_temp();
+};
 /* USER CODE END 0 */
 
 /**
@@ -135,34 +178,20 @@ int main(void)
   MX_TIM5_Init();
   MX_SPI1_Init();
   MX_TIM9_Init();
-  MX_LPTIM1_Init();
   MX_TIM1_Init();
   MX_TIM11_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
-  // Testing LCD
-  lcd_testing();
+  /** Initialize System **/
+  System_Initialization();
 
-//  // Testing PI Control
-//  HAL_TIM_Base_Start_IT(&htim5);
-//  PIController sys;
-//  sys.Kp = PID_KP;
-//  sys.Ki = PID_KI;
-//  sys.lim_min_int = PID_LIM_MIN_INT;
-//  sys.lim_max_int = PID_LIM_MIN_INT;
-//  sys.lim_min = PID_LIM_MIN;
-//  sys.lim_max = PID_LIM_MAX;
-//  sys.T = PERIOD;
-//
-//  Controller_Init(&sys);
-//  float setpoint = 0.5f;
-//  for (float t = 0.0f; t <= SIM_TIME; t += PERIOD) {
-//
-//	  float measurement = TestSystem_Update(sys.out);
-//	  Controller_Update(&sys, setpoint, measurement);
-//	  HAL_Delay(1);
-//  }
+  /** Take measurements for calculation of PI gain constants **/
+//  ZN_Tuning();
 
+  // Initialize local variables
+  int heating_stage = 0;
+  int graph_refresh = 0;
 
   /* USER CODE END 2 */
 
@@ -174,37 +203,153 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  // Switch for LCD display modes which will be toggled through via
-	  // the switch on the rotary encoder
-//	  STATE %= 3;
-//	  switch(STATE){
-//
-//		  // Initialization / Idle / Stopped screen
-//		  case 0:
-//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_SET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
-//			  break;
-//		  // Start heating routines
-//		  case 1:
-//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_SET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
-//			  break;
-//		  // Temperature reached (buzzer as well), continue heating routines
-//		  case 2:
-//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_SET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
-//			  break;
-//
-//		  default:
-//			  break;
-//	  }
+	  /** SYSTEM STATE MACHINE **/
+	  switch (STATE)
+	  {
+
+		  // Idle state
+		  case 0:
+
+			  // Display Idle screen
+			  LCD_Refresh(STATE);
+
+			  // Reset local variables
+			  heating_stage = 0;
+			  graph_refresh = 0;
+
+				/* Disable all peripherals */
+				HAL_GPIO_WritePin(SENS_DIS_GPIO_Port, SENS_DIS_Pin, GPIO_PIN_SET);	// Disable sensors
+				HAL_GPIO_WritePin(EN_12V_GPIO_Port, EN_12V_Pin, GPIO_PIN_SET);		// Disable hotplate voltage
+				PWM_Update(fan_pwm, TIM_CHANNEL_1, 1);								// Disable fan (100% DC)
+				PWM_Update(hotplate_pwm, TIM_CHANNEL_1, 1);							// Disable hotplate (100% DC)
+
+			  break;
+
+		  // Display Setup screen
+		  case 1:
+
+			  // Enable Plate Power
+			  HAL_GPIO_WritePin(EN_12V_GPIO_Port, EN_12V_Pin, GPIO_PIN_RESET);
+
+			  // Enable sensors
+			  HAL_GPIO_WritePin(SENS_DIS_GPIO_Port, SENS_DIS_Pin, GPIO_PIN_RESET);
+
+			  // Enable fan
+			  PWM_Update(fan_pwm, TIM_CHANNEL_1, .5);
+
+			  // Enable LCD
+			  HAL_GPIO_WritePin(DISP_DIS_GPIO_Port, DISP_DIS_Pin, GPIO_PIN_RESET);
+
+			  // Update user inputs and display
+			  LCD_usr_inputs(&user_preheat_temp, &user_preheat_time, &user_temp, &user_reflow_time);
+			  LCD_Refresh(STATE);
+			  update_temps();
+
+			  break;
+
+		  // Display heating screen
+		  case 2:
+
+				  // Update LCD less frequently to remove screen refresh overhead
+				  if (graph_refresh == 0) {	// Scuffed timerless version of slowing refresh rate
+
+					  LCD_updt_temps(&measured_hotplate_temp, &measured_amb_temp);
+					  LCD_Refresh(STATE);
+
+				  }
+				  graph_refresh = (graph_refresh + 1) % 100;
+
+				  // Update temperature measurements for control fx
+				  update_temps();
+
+						  switch (heating_stage)
+						  {
+
+						  // First stage, max hotplate PWM to reach preheat temp
+						  case 0:
+
+							  // If hotplate is below desired temp, max out
+							  if (measured_hotplate_temp < user_temp) {
+
+								  PWM_Update(hotplate_pwm, TIM_CHANNEL_1, 0.0);	// Max plate by turning FET off
+
+							  } else { // If hotplate has reached desired temp, move to next stage
+
+								  heating_stage++;
+
+							  }
+
+							  break;
+
+						  // Second stage, maintain hotplate at preheat temp for xxx time
+						  case 1:
+
+							  // Check if timer enabled, start timer
+							  if (HAL_TIM_Base_GetState(control_timer) != HAL_TIM_STATE_BUSY) {
+
+								  start_preheat();
 
 
+							  }	else if ( preheat_status() ){	// If preheat time has been completed
 
-//	  HAL_Delay(20);
+								  HAL_TIM_Base_Stop_IT(control_timer);
+								  heating_stage++;
+
+							  }
+
+							  break;
+
+						  // Third stage, max hotplate PWM to reach reflow temp
+						  case 2:
+
+							  // If hotplate is below desired temp, max out
+							  if (measured_hotplate_temp < user_temp) {
+
+								  PWM_Update(hotplate_pwm, TIM_CHANNEL_1, 0.0);	// Max plate by turning FET off
+
+							  } else { // If hotplate has reached desired temp, move to next stage
+
+								  heating_stage++;
+
+							  }
+
+							  break;
+
+						  // Fourth stage, maintain hotplate at reflow temp for xxx time
+						  case 3:
+
+							  // Check if timer enabled, start timer
+							  if (HAL_TIM_Base_GetState(control_timer) != HAL_TIM_STATE_BUSY) {
+
+								  start_reflow();
+
+
+							  }	else if ( reflow_status() ){	// If reflow time has been completed
+
+								  HAL_TIM_Base_Stop_IT(control_timer);
+
+								  // Reset heating_stage
+								  heating_stage = 0;
+
+								  // Send system state back to initialization
+								  STATE = 0;
+
+							  }
+
+							  break;
+
+						  default :
+
+							  break;
+
+						  }
+
+		  default :
+
+			  break;
+
+		  }
+
   }
   /* USER CODE END 3 */
 }
@@ -229,7 +374,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 96;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -239,12 +390,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -253,27 +404,6 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

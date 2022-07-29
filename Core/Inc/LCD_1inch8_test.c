@@ -59,3 +59,22 @@ void LCD_1in8_test()
   
 }
 
+/* Throwaway routine for testing LCD library functions */
+/*
+void lcd_testing()
+{
+
+	// Begin LCD Init
+	DEV_Module_Init();
+	LCD_1IN8_Init(SCAN_DIR_DFT);
+	LCD_1IN8_Clear(BLACK);
+	Paint_NewImage(LCD_1IN8_WIDTH,LCD_1IN8_HEIGHT, 0, WHITE);
+	Paint_SetClearFuntion(LCD_1IN8_Clear);
+	Paint_SetDisplayFuntion(LCD_1IN8_DrawPaint);
+	Paint_Clear(WHITE);
+	// End LCD Init
+
+	// Initialization routine:
+	Paint_DrawImage(gImage_70X70, 1, 30, 100, 100);
+
+};*/

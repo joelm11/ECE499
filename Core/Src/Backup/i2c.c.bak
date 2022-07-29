@@ -113,7 +113,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
 
 /* USER CODE BEGIN 1 */
 
-// Routine for reading TM75
+/*	Routine for reading TMP75	*/
 float read_ambient_temp()
 {
 
@@ -131,7 +131,7 @@ float read_ambient_temp()
 	return final_tempr * .0625;
 }
 
-// Routine for reading IR Temp Sensor
+/*	Routine for reading IR Temp Sensor MLX90614		*/
 float read_plate_temp()
 {
 
@@ -141,7 +141,7 @@ float read_plate_temp()
 	int final_tempr = 0;
 
 	// Routine as described for dataread from MLX90614 DS
-	// TODO: May need to program temperature range and emissivity constant within EEPROM
+	// TODO: May need to program temperature range and emissivity constant within EEPROM (see DS for protocol)
 	HAL_I2C_Mem_Read(&hi2c1, ir_sens_addr, t_obj_addr, 1, tempr_data_buff, 3, 100);	// Note use this function it is better somehow
 
 	// Final temperature = Tobj * .02 - 273.15
@@ -151,5 +151,11 @@ float read_plate_temp()
 	return final_tempr;
 }
 
+/*	Routine for reading orientation sensor LIS2HH12		*/
+void read_orientation()
+{
+
+
+}
 
 /* USER CODE END 1 */

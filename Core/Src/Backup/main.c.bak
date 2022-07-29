@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
-#include "lptim.h"
 #include "spi.h"
 #include "tim.h"
 #include "gpio.h"
@@ -33,6 +32,7 @@
 #include "DEV_Config.h"
 #include "SensorInterfacing.h"
 #include "PWM_Config.h"
+#include "Control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,46 +53,13 @@ volatile int STATE = 0;
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-//volatile extern int STATE;
+volatile int measured_amb_temp = 0;
+volatile int measured_plate_temp = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-void lcd_testing()
-{
-
-	// Begin LCD Init
-	DEV_Module_Init();
-	LCD_1IN8_Init(SCAN_DIR_DFT);
-	LCD_1IN8_Clear(BLACK);
-	Paint_NewImage(LCD_1IN8_WIDTH,LCD_1IN8_HEIGHT, 0, WHITE);
-	Paint_SetClearFuntion(LCD_1IN8_Clear);
-	Paint_SetDisplayFuntion(LCD_1IN8_DrawPaint);
-	Paint_Clear(WHITE);
-	// End LCD Init
-
-	// Initialization routine:
-	Paint_DrawString_EN(1, 48, "Initializing", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_DrawString_EN(1, 48, "Initializing .", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_DrawString_EN(1, 48, "Initializing . .", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_DrawString_EN(1, 48, "Initializing . . .", &Font12, 0xFFFF, 0x0000);
-	HAL_Delay(1000);
-	Paint_Clear(WHITE);
-	Paint_DrawString_EN(1, 48, "Current Temperature:", &Font12, 0xFFFF, 0x0000);
-	Paint_DrawFloatNum(1 , 60, 69.69696, 5, &Font12, 0x0000, 0xFFFF);
-	HAL_Delay(1000);
-	Paint_Clear(WHITE);
-	Paint_DrawFloatNum(1 , 60, 70.0000, 5, &Font12, 0x0000, 0xFFFF);
-	HAL_Delay(2000);
-//	// gImage_70X70
-//	Paint_DrawImage(gImage_70X70, 1, 60, 70, 70);
-//	Paint_DrawImage(gImage_1,80,35,60,60);
-
-};
 
 /* USER CODE END PFP */
 
@@ -133,23 +100,11 @@ int main(void)
   MX_TIM5_Init();
   MX_SPI1_Init();
   MX_TIM9_Init();
-  MX_LPTIM1_Init();
   MX_TIM1_Init();
   MX_TIM11_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
-//  LCD_1in8_test();
-//  lcd_testing();
-//  HAL_TIM_Base_Start_IT(&htim5);
 
-  // Testing adjusting PWM rates
-
-  // NOTE: TIM5 being weird for some reason
-//  float Duty_Cycle = 0.5;
-  HAL_TIM_PWM_Start(&htim9, TIM_CHANNEL_1);
-//  PWM_Update(&htim9, TIM_CHANNEL_1, Duty_Cycle);
-//  PWM_Update(&htim11, TIM_CHANNEL_1, Duty_Cycle);
-//  PWM_Update(&htim5, TIM_CHANNEL_1, Duty_Cycle);
-//  PWM_Update(&htim1, TIM_CHANNEL_1, Duty_Cycle);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -160,37 +115,9 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  // Switch for LCD display modes which will be toggled through via
-	  // the switch on the rotary encoder
-//	  STATE %= 3;
-//	  switch(STATE){
-//
-//		  // Initialization / Idle / Stopped screen
-//		  case 0:
-//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_SET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
-//			  break;
-//		  // Start heating routines
-//		  case 1:
-//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_SET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_RESET);
-//			  break;
-//		  // Temperature reached (buzzer as well), continue heating routines
-//		  case 2:
-//			  HAL_GPIO_WritePin(GPIOC, LED_B_Pin, GPIO_PIN_SET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_R_Pin, GPIO_PIN_RESET);
-//			  HAL_GPIO_WritePin(GPIOC, LED_G_Pin, GPIO_PIN_RESET);
-//			  break;
-//
-//		  default:
-//			  break;
-//	  }
 
 
 
-//	  HAL_Delay(20);
   }
   /* USER CODE END 3 */
 }
@@ -215,7 +142,13 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 96;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  RCC_OscInitStruct.PLL.PLLQ = 4;
+  RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -225,12 +158,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3) != HAL_OK)
   {
     Error_Handler();
   }
@@ -239,27 +172,6 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 /* USER CODE END 4 */
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM6 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM6) {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-
-  /* USER CODE END Callback 1 */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

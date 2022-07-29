@@ -22,13 +22,15 @@ uint8_t X_POS = LIVE_TMP_X+1;		//Current x-axis pixel for live temp plot
 volatile LCD_DATA LCD_data;				//Interfaced with by main
 char amb_tmp_BUFFER[]=	{' ',' ','0','.','6','9','\0'};
 char plt_tmp_BUFFER[]=	{' ',' ','0','.','9','6','\0'};
-char set_tmp_BUFFER[]=	{' ',' ','9','.','0','6','\0'};
-char set_soak_BUFFER[]=	{' ',' ','1','.','0','6','\0'};
+char set_refl_temp_BUFFER[]=	{' ',' ','9','.','0','6','\0'};
+char set_refl_time_BUFFER[]=	{' ',' ','1','.','0','6','\0'};
+char set_preh_temp_BUFFER[]=	{' ',' ','9','.','0','6','\0'};
+char set_preh_time_BUFFER[]=	{' ',' ','1','.','0','6','\0'};
 
 /*
  *  Update measured temperatures
  */
-void LCD_updt_temps(float *cur_plt_tmp, float *cur_amb_tmp){
+void LCD_updt_temps(volatile float *cur_plt_tmp, volatile float *cur_amb_tmp){
 	LCD_data.CUR_PLT_TMP= *cur_plt_tmp;
 	LCD_data.CUR_AMB_TMP= *cur_amb_tmp;
 }
@@ -36,9 +38,14 @@ void LCD_updt_temps(float *cur_plt_tmp, float *cur_amb_tmp){
 /*
  *  Update configurable variables
  */
-void LCD_usr_inputs(float *set_plt_tmp, float *set_soak_tim){
-	LCD_data.SET_PLT_TMP = *set_plt_tmp;
-	LCD_data.SOAK_TIME = *set_soak_tim;
+void LCD_usr_inputs(volatile float* set_preheat_tmp, volatile float* set_preheat_tim,
+					volatile float* set_reflow_tmp, volatile float* set_reflow_tim) {
+
+    LCD_data.SET_REFL_TMP = *set_reflow_tmp;
+    LCD_data.SET_PRE_TMP = *set_preheat_tmp;
+    LCD_data.PREHEAT_TIME = *set_preheat_tim;
+    LCD_data.REFLOW_TIME = *set_reflow_tim;
+
 }
 
 /*
@@ -66,8 +73,10 @@ void LCD_init(void){
 
 		LCD_data.CUR_AMB_TMP=255;
 		LCD_data.CUR_PLT_TMP=255;
-		LCD_data.SET_PLT_TMP=255;
-		LCD_data.SOAK_TIME=255;
+		LCD_data.SET_REFL_TMP=255;
+		LCD_data.REFLOW_TIME=255;
+		LCD_data.SET_PRE_TMP=255;
+		LCD_data.REFLOW_TIME=255;
 		LCD_data.STATE=0;
 		LCD_data.flags=0;
 
@@ -151,10 +160,14 @@ void LCD_Refresh(uint8_t cur_STATE){
 
 	//Configure Hot plate
 	case 1:
-		LCD_Format(set_tmp_BUFFER,LCD_data.SET_PLT_TMP);
-		LCD_Format(set_soak_BUFFER,LCD_data.SOAK_TIME);
-		Paint_DrawString_EN(71, 24, set_tmp_BUFFER, &Font12, BLACK, WHITE);	//Update set temperature
-		Paint_DrawString_EN(71, 40, set_soak_BUFFER, &Font12, BLACK, WHITE);		//update set soak time
+		LCD_Format(set_preh_temp_BUFFER,LCD_data.SET_PRE_TMP);
+		LCD_Format(set_preh_time_BUFFER,LCD_data.PREHEAT_TIME);
+		LCD_Format(set_refl_temp_BUFFER,LCD_data.SET_REFL_TMP);
+		LCD_Format(set_refl_time_BUFFER,LCD_data.REFLOW_TIME);
+		Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE);
+		Paint_DrawString_EN(71, 40, set_preh_time_BUFFER, &Font12, BLACK, WHITE);
+		Paint_DrawString_EN(71, 56, set_refl_temp_BUFFER, &Font12, BLACK, WHITE);
+		Paint_DrawString_EN(71, 72, set_refl_time_BUFFER, &Font12, BLACK, WHITE);
 		break;
 
 	//Hot Plate Heating Graph
@@ -229,8 +242,10 @@ void LCD_Set_State(uint8_t test_STATE){
 		case 1:
 			LCD_1IN8_Clear(BLACK);
 			Paint_DrawString_EN(120,1, "STATE 1", &Font8, BLACK, WHITE);
-			Paint_DrawString_EN(1, 24, "Set Temp:       `C", &Font12, BLACK, WHITE);
-			Paint_DrawString_EN(1, 40, "Set Soak:        min", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 24, "Set P_Temp:       `C", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 40, "Set P_Tim:        min", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 56, "Set R_Temp:       `C", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 72, "Set R_Tim:        min", &Font12, BLACK, WHITE);
 			break;
 
 		//Hot Plate Heating
@@ -270,12 +285,12 @@ void LCD_Set_State(uint8_t test_STATE){
 		case 3:
 			LCD_1IN8_Clear(BLACK);
 			Paint_DrawString_EN(120, 1, "STATE 3", &Font8, BLACK, WHITE);
-			LCD_Format(set_tmp_BUFFER,LCD_data.SET_PLT_TMP);
+			LCD_Format(set_refl_temp_BUFFER,LCD_data.SET_REFL_TMP);
 			LCD_Format(plt_tmp_BUFFER,LCD_data.CUR_PLT_TMP);
 			LCD_Format(amb_tmp_BUFFER,LCD_data.CUR_AMB_TMP);
 			Paint_DrawString_EN(24, 8,  "Sensor Readings", &Font12, BLACK, WHITE);
 			Paint_DrawString_EN(1, 72,  "Plate Target:       `C", &Font12, BLACK, WHITE);
-			Paint_DrawString_EN(98, 72,  set_tmp_BUFFER, &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(98, 72,  set_refl_temp_BUFFER, &Font12, BLACK, WHITE);
 			Paint_DrawString_EN(1, 88,  "Plate Live:         `C", &Font12, BLACK, WHITE);
 			Paint_DrawString_EN(98, 88,  plt_tmp_BUFFER, &Font12, BLACK, WHITE);
 			Paint_DrawString_EN(1, 104, "Ambient Live:       `C", &Font12, BLACK, WHITE);
@@ -328,7 +343,7 @@ void Custom_LCD_test(){
 
 	//Set hotplate temp and soak time STATE 1
 	LCD_Refresh(1);
-	LCD_usr_inputs(&set_hotplate_temp, &set_hotplate_soak);
+//	LCD_usr_inputs(&set_hotplate_temp, &set_hotplate_soak);
 	LCD_Refresh(1);
 	HAL_Delay(1000);
 
