@@ -15,6 +15,7 @@
 #include "GUI_Paint.h"
 #include "LCD_Routines.h"
 #include "image.h"
+#include "main.h"
 #include <stdio.h>
 
 //Variables
@@ -168,10 +169,40 @@ void LCD_Refresh(uint8_t cur_STATE){
 		LCD_Format(set_preh_time_BUFFER,LCD_data.PREHEAT_TIME);
 		LCD_Format(set_refl_temp_BUFFER,LCD_data.SET_REFL_TMP);
 		LCD_Format(set_refl_time_BUFFER,LCD_data.REFLOW_TIME);
-		Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE);
-		Paint_DrawString_EN(71, 40, set_preh_time_BUFFER, &Font12, BLACK, WHITE);
-		Paint_DrawString_EN(71, 56, set_refl_temp_BUFFER, &Font12, BLACK, WHITE);
-		Paint_DrawString_EN(71, 72, set_refl_time_BUFFER, &Font12, BLACK, WHITE);
+//		switch (set_user_temp_flag) {
+//			case 0:
+//				Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, BLUE);
+//				Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, WHITE);
+//				break;
+//			case 1:
+//				Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, BLUE);
+//				Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, WHITE);
+//				break;
+//			case 2:
+//				Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, BLUE);
+//				Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, WHITE);
+//				break;
+//			case 3:
+//				Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, WHITE);
+//				Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, BLUE);
+//				break;
+//
+//			default:
+//				break;
+//		}
+
+		Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 0));
+		Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 1));
+		Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 2));
+		Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 3));
 		break;
 
 	//Hot Plate Heating Graph
@@ -248,9 +279,9 @@ void LCD_Set_State(uint8_t test_STATE){
 			LCD_1IN8_Clear(BLACK);
 //			Paint_DrawString_EN(120,1, "STATE 1", &Font8, BLACK, WHITE);
 			Paint_DrawString_EN(1, 24, "Set P_Temp:       `C", &Font12, BLACK, WHITE);
-			Paint_DrawString_EN(1, 40, "Set P_Tim:        min", &Font12, BLACK, WHITE);
-			Paint_DrawString_EN(1, 56, "Set R_Temp:       `C", &Font12, BLACK, WHITE);
-			Paint_DrawString_EN(1, 72, "Set R_Tim:        min", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 48, "Set P_Tim:        min", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 72, "Set R_Temp:       `C", &Font12, BLACK, WHITE);
+			Paint_DrawString_EN(1, 96, "Set R_Tim:        min", &Font12, BLACK, WHITE);
 			break;
 
 		//Hot Plate Heating
