@@ -199,10 +199,10 @@ void LCD_Refresh(uint8_t cur_STATE){
 //				break;
 //		}
 
-		Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 0));
-		Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 1));
-		Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 2));
-		Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, WHITE >> (set_user_temp_flag == 3));
+		Paint_DrawString_EN(71, 24, set_preh_temp_BUFFER, &Font12, BLACK, WHITE >> ((set_user_temp_flag == 0)) * 8);
+		Paint_DrawString_EN(71, 48, set_preh_time_BUFFER, &Font12, BLACK, WHITE >> ((set_user_temp_flag == 1)) * 8);
+		Paint_DrawString_EN(71, 72, set_refl_temp_BUFFER, &Font12, BLACK, WHITE >> ((set_user_temp_flag == 2)) * 8);
+		Paint_DrawString_EN(71, 96, set_refl_time_BUFFER, &Font12, BLACK, WHITE >> ((set_user_temp_flag == 3)) * 8);
 		break;
 
 	//Hot Plate Heating Graph
