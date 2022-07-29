@@ -14,6 +14,7 @@
 #include "DEV_Config.h"
 #include "GUI_Paint.h"
 #include "LCD_Routines.h"
+#include "image.h"
 #include <stdio.h>
 
 //Variables
@@ -156,6 +157,9 @@ void LCD_Refresh(uint8_t cur_STATE){
 			Paint_DrawString_EN(46, 112, "OKAY", &Font8, BLACK, WHITE);
 		if((LCD_data.flags & 0x20) ==0x20 )
 			Paint_DrawString_EN(46, 120, "OKAY", &Font8, BLACK, WHITE);
+
+
+
 		break;
 
 	//Configure Hot plate
@@ -229,19 +233,20 @@ void LCD_Set_State(uint8_t test_STATE){
 		//Initial boot up
 		case 0:
 			LCD_1IN8_Clear(BLACK);
-			Paint_DrawString_EN(120,1, "STATE 0", &Font8, BLACK, WHITE);
-			Paint_DrawString_EN(1, 32, "THE HOT POTATO", &Font16, BLACK, WHITE);
-			Paint_DrawString_EN(24, 56, "SMD REFLOW", &Font16, BLACK, WHITE);
-			Paint_DrawString_EN(1, 96, "Initialization:", &Font8, BLACK, WHITE);
-			Paint_DrawString_EN(1, 104, "IMU: ...", &Font8, BLACK, WHITE);
-			Paint_DrawString_EN(1, 112, "TEMP #1: ...", &Font8, BLACK, WHITE);
-			Paint_DrawString_EN(1, 120, "TEMP #2: ...", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(123,1, "STATE 0", &Font8, BLACK, WHITE);
+			Paint_DrawString_EN(1, 12, "THE HOT POTATO", &Font16, BLACK, WHITE);
+			Paint_DrawString_EN(24, 36, "SMD REFLOW", &Font16, BLACK, WHITE);
+//			Paint_DrawString_EN(1, 96, "Initialization:", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(1, 104, "IMU: ...", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(1, 112, "TEMP #1: ...", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(1, 120, "TEMP #2: ...", &Font8, BLACK, WHITE);
+			Paint_DrawImage(&gImage_70X70, 50, 50, 80, 62);
 			break;
 
 		//Configure Hot plate
 		case 1:
 			LCD_1IN8_Clear(BLACK);
-			Paint_DrawString_EN(120,1, "STATE 1", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(120,1, "STATE 1", &Font8, BLACK, WHITE);
 			Paint_DrawString_EN(1, 24, "Set P_Temp:       `C", &Font12, BLACK, WHITE);
 			Paint_DrawString_EN(1, 40, "Set P_Tim:        min", &Font12, BLACK, WHITE);
 			Paint_DrawString_EN(1, 56, "Set R_Temp:       `C", &Font12, BLACK, WHITE);
@@ -251,7 +256,7 @@ void LCD_Set_State(uint8_t test_STATE){
 		//Hot Plate Heating
 		case 2:
 			LCD_1IN8_Clear(BLACK);
-			Paint_DrawString_EN(120, 1, "STATE 2", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(120, 1, "STATE 2", &Font8, BLACK, WHITE);
 			Paint_DrawString_EN(1, 1, "Temp", &Font8, BLACK, WHITE);
 			Paint_DrawString_EN(1, 9, "`C", &Font8, BLACK, WHITE);
 			Paint_DrawString_EN(80, 120, "Time", &Font8, BLACK, WHITE);
@@ -284,7 +289,7 @@ void LCD_Set_State(uint8_t test_STATE){
 		//Another Temp Display
 		case 3:
 			LCD_1IN8_Clear(BLACK);
-			Paint_DrawString_EN(120, 1, "STATE 3", &Font8, BLACK, WHITE);
+//			Paint_DrawString_EN(120, 1, "STATE 3", &Font8, BLACK, WHITE);
 			LCD_Format(set_refl_temp_BUFFER,LCD_data.SET_REFL_TMP);
 			LCD_Format(plt_tmp_BUFFER,LCD_data.CUR_PLT_TMP);
 			LCD_Format(amb_tmp_BUFFER,LCD_data.CUR_AMB_TMP);
